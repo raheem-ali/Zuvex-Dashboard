@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0b1230;
+  --color-navy-2: #0e1740;
+  --color-brand: #2f6bff;
+  --color-brand-dark: #1e4fd6;
+  --color-brand-light: #eaf0ff;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-surface: #f7f8fb;
+  --color-line: #e7e9f0;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* shared bare input used inside styled field wrappers */
+.input {
+  width: 100%;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+.input::placeholder {
+  color: #9aa3b5;
+}
