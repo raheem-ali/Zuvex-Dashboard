@@ -6,7 +6,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight, LayoutGrid } from "lucide-react";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); 
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
