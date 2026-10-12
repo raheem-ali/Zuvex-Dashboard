@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, LayoutGrid } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,11 +39,15 @@ export default function LoginPage() {
 
       // Save the token returned from Laravel Sanctum
       if (data.token) {
+        // 1. Store in localStorage for client-side API requests
         localStorage.setItem("auth_token", data.token);
+
+        // 2. Store in a cookie so Next.js Middleware / Server Components can read it
+        document.cookie = `auth_token=${data.token}; path=/; max-age=86400; SameSite=Lax; Secure`;
       }
 
-      router.replace("/dashboard");
-      router.refresh();
+      // 3. Perform a hard browser navigation to clear router cache & bypass middleware redirect loop
+      window.location.href = "/dashboard";
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
