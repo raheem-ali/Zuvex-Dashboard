@@ -60,7 +60,7 @@ export default function LoginPage() {
           <LayoutGrid size={20} />
         </span>
         <span className="text-2xl font-bold tracking-tight text-navy">
-          YourBrand
+          Zuvex Hub
         </span>
       </div>
 
