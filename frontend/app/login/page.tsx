@@ -20,7 +20,10 @@ export default function LoginPage() {
     try {
       const res = await fetch("https://api.zuvexhub.com/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify({
           email: form.get("email"),
           password: form.get("password"),
@@ -31,9 +34,14 @@ export default function LoginPage() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.message ?? "Sign in failed. Please try again.");
+        setError(data.message ?? "Invalid email or password.");
         setLoading(false);
         return;
+      }
+
+      // Save the token returned from Laravel Sanctum
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
       }
 
       router.replace("/dashboard");
