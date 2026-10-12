@@ -21,7 +21,10 @@ export default function LoginPage() {
       // sets the HttpOnly admin_token cookie, so no token handling here.
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         credentials: "same-origin",
         body: JSON.stringify({
           email: form.get("email"),
@@ -38,6 +41,7 @@ export default function LoginPage() {
         return;
       }
 
+      // Hard navigation so middleware and the dashboard layout see the cookie
       window.location.assign("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");
