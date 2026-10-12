@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, LayoutGrid } from "lucide-react";
 
+const API_URL = "https://api.zuvexhub.com/api/auth/login";
+
+// Must match the cookie name read in middleware.ts and the dashboard layout
+const TOKEN_KEY = "admin_token";
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -14,18 +19,19 @@ export default function LoginPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
+    const remember = form.get("remember") === "on";
 
     try {
-      const res = await fetch("https://api.zuvexhub.com/api/auth/login", {
+      const res = await fetch(API_URL, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          Accept: "application/json",
         },
         body: JSON.stringify({
           email: form.get("email"),
           password: form.get("password"),
-          remember: form.get("remember") === "on",
+          remember,
         }),
       });
 
@@ -37,17 +43,33 @@ export default function LoginPage() {
         return;
       }
 
-      // Save the token returned from Laravel Sanctum
-      if (data.token) {
-        // 1. Store in localStorage for client-side API requests
-        localStorage.setItem("auth_token", data.token);
-
-        // 2. Store in a cookie so Next.js Middleware / Server Components can read it
-        document.cookie = `auth_token=${data.token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+      if (!data.token) {
+        setError("Login succeeded but the server returned no token.");
+        setLoading(false);
+        return;
       }
 
-      // 3. Perform a hard browser navigation to clear router cache & bypass middleware redirect loop
-      window.location.href = "/dashboard";
+      // 1. localStorage for client-side API requests
+      localStorage.setItem(TOKEN_KEY, data.token);
+
+      // 2. Cookie for Next.js middleware / server components.
+      //    "Secure" only on https (browsers drop Secure cookies on plain http).
+      //    Lifetime matches the Laravel token (30 days if remembered, else 1 day).
+      const secure = window.location.protocol === "https:" ? "; Secure" : "";
+      const maxAge = remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
+      document.cookie = `${TOKEN_KEY}=${data.token}; path=/; max-age=${maxAge}; SameSite=Lax${secure}`;
+
+      // 3. Make sure the browser actually stored the cookie
+      if (!document.cookie.includes(`${TOKEN_KEY}=`)) {
+        setError(
+          "Your browser blocked the login cookie. Use https or localhost and try again."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // 4. Hard navigation clears the router cache so middleware sees the cookie
+      window.location.assign("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
