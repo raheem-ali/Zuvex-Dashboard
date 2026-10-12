@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { API_URL, TOKEN_COOKIE } from "@/lib/session";
+import { API_URL, TOKEN_COOKIE, getToken } from "@/lib/session";
 
 export async function POST() {
-  const store = await cookies();
-  const token = store.get(TOKEN_COOKIE)?.value;
+  const token = await getToken();
 
+  // Best effort: revoke the token on Laravel, then always clear the cookie
   if (token) {
-    // Revoke the token in Laravel; ignore failures so the user can still log out
     await fetch(`${API_URL}/logout`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      cache: "no-store",
     }).catch(() => {});
   }
 
-  store.delete(TOKEN_COOKIE);
-  return NextResponse.json({ ok: true });
+  (await cookies()).delete(TOKEN_COOKIE);
+  return NextResponse.json({ message: "Logged out." });
 }

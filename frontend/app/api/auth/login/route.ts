@@ -7,7 +7,8 @@ export async function POST(req: Request) {
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/login`, {
+    // Laravel route is /api/auth/login
+    res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({
@@ -33,14 +34,21 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!data.token) {
+    return NextResponse.json(
+      { message: "Sign in succeeded but no token was returned." },
+      { status: 502 }
+    );
+  }
+
   const store = await cookies();
   store.set(TOKEN_COOKIE, data.token, {
     httpOnly: true, // JavaScript in the browser can't read it
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    // "Keep me logged in" -> 30 days, otherwise a session cookie
-    ...(body.remember ? { maxAge: 60 * 60 * 24 * 30 } : {}),
+    // "Keep me logged in" -> 30 days (matches Laravel), otherwise 1 day
+    maxAge: body.remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24,
   });
 
   return NextResponse.json({ user: data.user });

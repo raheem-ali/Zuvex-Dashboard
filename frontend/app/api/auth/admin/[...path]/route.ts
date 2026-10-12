@@ -39,18 +39,29 @@ async function handler(
     );
   }
 
-  // Content changed -> tell the website (a separate project) to refresh its home page
-  if (req.method !== "GET" && res.ok && process.env.WEBSITE_URL && process.env.REVALIDATE_SECRET) {
+  // Content changed -> tell the PUBLIC website (a separate project) to refresh
+  if (
+    req.method !== "GET" &&
+    res.ok &&
+    process.env.WEBSITE_URL &&
+    process.env.REVALIDATE_SECRET
+  ) {
     await fetch(`${process.env.WEBSITE_URL}/api/revalidate`, {
       method: "POST",
       headers: { "x-revalidate-secret": process.env.REVALIDATE_SECRET },
     }).catch(() => {});
   }
 
-  return new NextResponse(await res.text(), {
+  return new NextResponse(res.status === 204 ? null : await res.text(), {
     status: res.status,
     headers: { "Content-Type": res.headers.get("content-type") ?? "application/json" },
   });
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
+export {
+  handler as GET,
+  handler as POST,
+  handler as PUT,
+  handler as PATCH,
+  handler as DELETE,
+};
